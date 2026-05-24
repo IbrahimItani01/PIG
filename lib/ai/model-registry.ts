@@ -29,6 +29,10 @@ export function resolveModel(id: LogicalModelId): ResolvedModel {
   };
 }
 
+export function isQualityModel(id: LogicalModelId | string) {
+  return id.includes("quality");
+}
+
 export function isModelAllowedForPlan(modelId: LogicalModelId, plan: Plan) {
   return plans[plan].availableModels.includes(modelId);
 }

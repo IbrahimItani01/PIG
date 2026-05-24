@@ -11,6 +11,7 @@ import { detectSecrets } from "@/lib/utils/secrets";
 import { checkEvaluationRateLimit } from "@/lib/rate-limit";
 import { handleRouteError, jsonError } from "@/lib/utils/http";
 import { isModelAllowedForPlan } from "@/lib/ai/model-registry";
+import { checkMonthlyUsageLimit, recordLimitEvent } from "@/lib/billing/usage";
 
 export async function GET() {
   try {
@@ -42,6 +43,22 @@ export async function POST(request: NextRequest) {
 
     if (!isModelAllowedForPlan(body.model as LogicalModelId, user.plan)) {
       return jsonError("This model is not available on your current plan.", 403);
+    }
+
+    const monthlyUsage = await checkMonthlyUsageLimit({
+      userId: user.id,
+      plan: user.plan,
+      feature: "evaluation",
+      modelId: body.model,
+    });
+    if (!monthlyUsage.success) {
+      await recordLimitEvent({
+        userId: user.id,
+        eventType: UsageEventType.PROMPT_EVALUATION,
+        modelId: body.model,
+        reason: monthlyUsage.message ?? "monthly-limit",
+      });
+      return jsonError(monthlyUsage.message ?? messages.errors.rateLimited, 429);
     }
 
     const rate = await checkEvaluationRateLimit(user.id, user.plan);

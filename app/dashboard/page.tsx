@@ -7,8 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { dashboardCards } from "@/config/dashboard";
 import { messages } from "@/config/messages";
-import { plans } from "@/config/plans";
 import { requireUser } from "@/lib/auth/session";
+import { getBillingUsageSummary } from "@/lib/billing/usage";
 import { getPrisma } from "@/lib/db/prisma";
 
 export default async function DashboardPage() {
@@ -26,17 +26,12 @@ export default async function DashboardPage() {
     _max: { overallScore: true },
   });
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todaysUsage = await prisma.usageEvent.count({
-    where: { userId: user.id, eventType: "PROMPT_EVALUATION", createdAt: { gte: today } },
-  });
-  const planLimit = plans[user.plan].dailyEvaluations;
+  const usage = await getBillingUsageSummary(user.id, user.plan);
   const stats = {
     totalEvaluations: aggregate._count,
     averageScore: aggregate._avg.overallScore ? aggregate._avg.overallScore.toFixed(1) : "0.0",
     bestScore: aggregate._max.overallScore ? aggregate._max.overallScore.toFixed(1) : "0.0",
-    remainingCredits: Math.max(0, planLimit - todaysUsage),
+    remainingCredits: usage.evaluations.remaining,
   };
 
   return (

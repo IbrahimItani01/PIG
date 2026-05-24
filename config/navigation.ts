@@ -1,4 +1,4 @@
-import { BarChart3, ClipboardCheck, PlusCircle, Settings, Shield } from "lucide-react";
+import { BarChart3, ClipboardCheck, CreditCard, PlusCircle, Settings, Shield } from "lucide-react";
 
 export const marketingNavigation = [
   { label: "Features", href: "/#features" },
@@ -11,6 +11,7 @@ export const appNavigation = [
   { label: "Dashboard", href: "/dashboard", icon: BarChart3 },
   { label: "New evaluation", href: "/evaluations/new", icon: PlusCircle },
   { label: "History", href: "/evaluations", icon: ClipboardCheck },
+  { label: "Billing", href: "/billing", icon: CreditCard },
   { label: "Settings", href: "/settings", icon: Settings },
 ] as const;
 

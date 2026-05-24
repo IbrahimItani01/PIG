@@ -44,8 +44,10 @@ Copy `.env.example` to `.env.local` and fill in:
 - Database: `DATABASE_URL`, `DIRECT_URL`
 - AI: `AI_GATEWAY_API_KEY` plus optional model env vars
 - Redis: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
-- Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_PRO_PRICE_ID`
+- Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_PRO_PRICE_ID`, `STRIPE_PREMIUM_PRICE_ID`
 - Sentry: `SENTRY_DSN`
+
+Stripe product descriptions should match `config/plans.ts`; the marketing and billing UIs render plan descriptions from that shared plan config.
 
 AI calls run server-side only. If no AI credentials are present, local development uses a deterministic evaluator so tests and UI flows still work.
 
@@ -113,7 +115,7 @@ npm run build
 
 ## Optional Production Work
 
-- Add live Stripe price IDs for all plans and persist subscription updates in the webhook.
+- Configure live Stripe price IDs and webhook signing secrets for subscription billing.
 - Configure Sentry DSN and release tracking.
 - Add team accounts, admin editing for rubric/model/plan configs, exports, and richer audit logs.
 - Replace the local fallback evaluator with required AI credentials in strict production environments.

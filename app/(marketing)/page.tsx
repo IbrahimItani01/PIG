@@ -104,7 +104,10 @@ export default function MarketingPage() {
             <Card key={plan.name}>
               <CardHeader>
                 <CardTitle>{plan.name}</CardTitle>
-                <CardDescription><span className="text-3xl font-semibold text-foreground">{plan.price}</span> / month</CardDescription>
+                <CardDescription className="space-y-2">
+                  <span className="block"><span className="text-3xl font-semibold text-foreground">{plan.price}</span> / month</span>
+                  <span className="block">{plan.description}</span>
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-2 text-sm text-muted-foreground">

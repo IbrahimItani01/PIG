@@ -8,6 +8,7 @@ import { testPromptRequestSchema } from "@/lib/ai/schemas";
 import { testPrompt } from "@/lib/ai/test-prompt";
 import { handleRouteError, jsonError } from "@/lib/utils/http";
 import { isModelAllowedForPlan } from "@/lib/ai/model-registry";
+import { checkMonthlyUsageLimit, recordLimitEvent } from "@/lib/billing/usage";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -20,6 +21,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     if (!isModelAllowedForPlan(body.model as LogicalModelId, user.plan)) {
       return jsonError("This model is not available on your current plan.", 403);
+    }
+
+    const monthlyUsage = await checkMonthlyUsageLimit({
+      userId: user.id,
+      plan: user.plan,
+      feature: "promptTest",
+      modelId: body.model,
+    });
+    if (!monthlyUsage.success) {
+      await recordLimitEvent({
+        userId: user.id,
+        eventType: UsageEventType.PROMPT_TEST_RUN,
+        modelId: body.model,
+        reason: monthlyUsage.message ?? "monthly-limit",
+      });
+      return jsonError(monthlyUsage.message ?? "You have reached your monthly prompt test limit.", 429);
     }
 
     const version = body.promptVersionId

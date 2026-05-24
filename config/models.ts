@@ -35,7 +35,7 @@ export const modelConfigs: Record<LogicalModelId, ModelConfig> = {
     provider: "default",
     displayName: "Default quality",
     defaultModelId: "openai/gpt-5.5",
-    tier: "PRO",
+    tier: "PREMIUM",
     costNote: "Higher quality default route.",
     fallback: "openai-quality",
   },
@@ -45,7 +45,7 @@ export const modelConfigs: Record<LogicalModelId, ModelConfig> = {
     displayName: "OpenAI fast",
     envVar: "OPENAI_FAST_MODEL",
     defaultModelId: "gpt-5-mini",
-    tier: "PREMIUM",
+    tier: "PRO",
     costNote: "OpenAI low-latency model.",
   },
   "openai-quality": {
@@ -54,7 +54,7 @@ export const modelConfigs: Record<LogicalModelId, ModelConfig> = {
     displayName: "OpenAI quality",
     envVar: "OPENAI_QUALITY_MODEL",
     defaultModelId: "gpt-5.5",
-    tier: "PRO",
+    tier: "PREMIUM",
     costNote: "OpenAI quality model.",
   },
   "anthropic-quality": {
@@ -81,7 +81,7 @@ export const modelConfigs: Record<LogicalModelId, ModelConfig> = {
     displayName: "Gemini quality",
     envVar: "GEMINI_QUALITY_MODEL",
     defaultModelId: "gemini-2.5-pro",
-    tier: "PRO",
+    tier: "PREMIUM",
     costNote: "Google Gemini quality model.",
   },
 };

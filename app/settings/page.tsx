@@ -30,8 +30,9 @@ export default async function SettingsPage() {
             <CardHeader><CardTitle>Usage and plan</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div><span className="text-muted-foreground">Plan:</span> {plan.label}</div>
-              <div><span className="text-muted-foreground">Daily evaluations:</span> {plan.dailyEvaluations}</div>
               <div><span className="text-muted-foreground">Monthly evaluations:</span> {plan.monthlyEvaluations}</div>
+              <div><span className="text-muted-foreground">Monthly prompt tests:</span> {plan.monthlyPromptTests}</div>
+              <div><span className="text-muted-foreground">Quality model runs:</span> {plan.monthlyQualityModelRuns}</div>
             </CardContent>
           </Card>
         </div>

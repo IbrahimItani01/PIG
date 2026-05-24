@@ -40,6 +40,7 @@ export const siteContent = {
   ],
   pricing: Object.values(plans).map((plan) => ({
     name: plan.label,
+    description: plan.description,
     price: plan.price,
     cta: plan.cta,
     features: plan.features,
@@ -55,7 +56,7 @@ export const siteContent = {
     },
     {
       question: "Is Stripe fully live?",
-      answer: "The schema and routes are Stripe-ready stubs. Add live keys and checkout price IDs to enable billing.",
+      answer: "Yes. Billing uses Stripe Checkout for subscriptions and Customer Portal for invoices, payment methods, and cancellation.",
     },
   ],
   footerLinks: [

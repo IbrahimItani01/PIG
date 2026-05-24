@@ -21,8 +21,9 @@ export function TestPromptButton({ evaluationId, model }: { evaluationId: string
             headers: { "content-type": "application/json" },
             body: JSON.stringify({ model }),
           });
+          const payload = await response.json();
           setLoading(false);
-          setMessage(response.ok ? "Test run saved." : "Test run failed.");
+          setMessage(response.ok ? "Test run saved." : payload.error ?? "Test run failed.");
         }}
         disabled={loading}
       >
