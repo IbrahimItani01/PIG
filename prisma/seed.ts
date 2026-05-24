@@ -40,7 +40,7 @@ async function main() {
       name: "Demo User",
       plan: "PRO",
       preferredProvider: "default",
-      preferredModel: "default-quality",
+      preferredModel: "default-fast",
     },
   });
 
@@ -59,7 +59,7 @@ async function main() {
         desiredOutput: "Email with subject, preview text, and body",
         tone: "Professional",
         modelProvider: "default",
-        modelId: "default-quality",
+        modelId: "default-fast",
         overallScore: 5.9,
         clarityScore: 6,
         contextScore: 4,

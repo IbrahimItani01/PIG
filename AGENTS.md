@@ -153,13 +153,15 @@ npm run prisma:migrate
 
 or, for local prototyping:
 ```bash
-npx prisma db push
+npm run prisma:push
 ```
 
 Seed data:
 ```bash
 npm run seed
 ```
+
+Prisma commands require both `DATABASE_URL` and `DIRECT_URL` to be set in the shell environment or loaded from `.env.local`.
 
 ## Auth and Security
 
