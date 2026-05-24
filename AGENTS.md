@@ -195,6 +195,7 @@ Prisma commands require both `DATABASE_URL` and `DIRECT_URL` to be set in the sh
 - Keep product UI dense, practical, and dashboard-oriented.
 - Use shared config (`config/plans.ts`, `config/site-content.ts`, `config/models.ts`) instead of duplicating product copy or limits in page code.
 - Billing and marketing pricing cards should render plan name, price, description, CTA, and features from plan config.
+- Evaluation form labels use `*` only for fields the user must fill manually. Fields with app defaults should stay unstarred and communicate their default fallback in placeholder/help text where applicable.
 
 ## Verification Commands
 

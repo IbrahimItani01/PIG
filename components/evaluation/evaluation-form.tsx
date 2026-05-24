@@ -16,10 +16,11 @@ import { detectSecrets } from "@/lib/utils/secrets";
 
 export function EvaluationForm({ models }: { models: ResolvedModel[] }) {
   const router = useRouter();
+  const defaultDesiredOutput = outputFormats[0];
   const [prompt, setPrompt] = useState("");
   const [useCase, setUseCase] = useState("GENERAL");
   const [targetAudience, setTargetAudience] = useState("");
-  const [desiredOutput, setDesiredOutput] = useState<string>(outputFormats[0]);
+  const [desiredOutput, setDesiredOutput] = useState("");
   const [tone, setTone] = useState<string>(toneOptions[0]);
   const [model, setModel] = useState<LogicalModelId>(models[0]?.id ?? "default-fast");
   const [error, setError] = useState<string | null>(null);
@@ -36,11 +37,13 @@ export function EvaluationForm({ models }: { models: ResolvedModel[] }) {
       return;
     }
 
+    const resolvedDesiredOutput = desiredOutput.trim() || defaultDesiredOutput;
+
     setLoading(true);
     const response = await fetch("/api/evaluations", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ prompt, useCase, targetAudience, desiredOutput, tone, model }),
+      body: JSON.stringify({ prompt, useCase, targetAudience, desiredOutput: resolvedDesiredOutput, tone, model }),
     });
     const payload = await response.json();
     setLoading(false);
@@ -63,7 +66,9 @@ export function EvaluationForm({ models }: { models: ResolvedModel[] }) {
       <CardContent>
         <form className="grid gap-5" onSubmit={submit}>
           <div className="space-y-2">
-            <Label htmlFor="prompt">Prompt</Label>
+            <Label htmlFor="prompt">
+              Prompt <span className="text-destructive" aria-hidden="true">*</span>
+            </Label>
             <Textarea id="prompt" value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Paste the prompt you want to evaluate..." required maxLength={12000} className="min-h-64" />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>{prompt.length.toLocaleString()} / 12,000 characters</span>
@@ -82,12 +87,20 @@ export function EvaluationForm({ models }: { models: ResolvedModel[] }) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="audience">Target audience</Label>
+              <Label htmlFor="audience">
+                Target audience <span className="text-destructive" aria-hidden="true">*</span>
+              </Label>
               <Input id="audience" value={targetAudience} onChange={(event) => setTargetAudience(event.target.value)} placeholder="e.g. senior backend engineers" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="output">Desired output</Label>
-              <Input id="output" list="output-formats" value={desiredOutput} onChange={(event) => setDesiredOutput(event.target.value)} required />
+              <Input
+                id="output"
+                list="output-formats"
+                value={desiredOutput}
+                onChange={(event) => setDesiredOutput(event.target.value)}
+                placeholder={`Defaults to ${defaultDesiredOutput}`}
+              />
               <datalist id="output-formats">
                 {outputFormats.map((item) => (
                   <option key={item} value={item} />
