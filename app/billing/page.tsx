@@ -7,7 +7,6 @@ import { Progress } from "@/components/ui/progress";
 import { plans } from "@/config/plans";
 import { requireUser } from "@/lib/auth/session";
 import { getBillingUsageSummary } from "@/lib/billing/usage";
-import { isPaidPlan } from "@/lib/billing/stripe-plans";
 
 const metricCards = [
   { key: "evaluations", label: "Evaluations", icon: Gauge },
@@ -114,13 +113,9 @@ export default async function BillingPage() {
                       </li>
                     ))}
                   </ul>
-                  {item.name === "FREE" ? (
-                    <Badge variant="secondary">Included for every account</Badge>
-                  ) : (
-                    <CheckoutButton plan={item.name} variant={item.name === "PREMIUM" ? "default" : "outline"} disabled={current}>
-                      {current ? "Current plan" : item.cta}
-                    </CheckoutButton>
-                  )}
+                  <CheckoutButton plan={item.name} variant={item.name === "PREMIUM" ? "default" : "outline"} disabled={current}>
+                    {current ? "Current plan" : item.cta}
+                  </CheckoutButton>
                 </CardContent>
               </Card>
             );
@@ -133,7 +128,7 @@ export default async function BillingPage() {
             <CardDescription>Use Stripe Customer Portal for invoices, payment methods, cancellation, and subscription changes.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <span>{isPaidPlan(user.plan) ? "Your billing portal is available after Stripe creates a customer for this subscription." : "Upgrade to a paid plan to create a Stripe customer and manage billing."}</span>
+            <span>{canOpenPortal ? "Use the portal for invoices, payment methods, and cancellation." : "Choose a plan to create your Stripe billing profile."}</span>
             <PortalButton disabled={!canOpenPortal} />
           </CardContent>
         </Card>

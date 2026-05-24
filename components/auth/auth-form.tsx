@@ -3,7 +3,9 @@
 import { KeyRound, Mail } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import type { Plan } from "@prisma/client";
 import { brand } from "@/config/brand";
+import { plans } from "@/config/plans";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,11 +18,12 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState<Plan>(getSafePlan(searchParams.get("plan")));
   const [message, setMessage] = useState<string | null>(searchParams.get("message"));
   const [error, setError] = useState<string | null>(searchParams.get("error"));
   const [loading, setLoading] = useState(false);
   const isSignup = mode === "signup";
-  const next = getSafeNext(searchParams.get("next"));
+  const next = isSignup ? `/onboarding/plan?plan=${selectedPlan}` : getSafeNext(searchParams.get("next"));
   const emailRedirectTo = typeof window === "undefined"
     ? undefined
     : `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
@@ -86,6 +89,28 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         <CardDescription>{descriptions[mode]}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {isSignup ? (
+          <div className="space-y-3">
+            <Label>Choose your plan</Label>
+            <div className="grid gap-2">
+              {Object.values(plans).map((plan) => (
+                <button
+                  key={plan.name}
+                  type="button"
+                  className={`rounded-md border p-3 text-left transition ${selectedPlan === plan.name ? "border-primary bg-primary/10" : "hover:bg-secondary"}`}
+                  onClick={() => setSelectedPlan(plan.name)}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-medium">{plan.label}</span>
+                    <span className="text-sm text-muted-foreground">{plan.price}/mo</span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">{plan.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         <Button type="button" variant="secondary" className="w-full" disabled={loading} onClick={signInWithGoogle}>
           <KeyRound className="h-4 w-4" />
           Continue with Google
@@ -116,4 +141,8 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 
 function getSafeNext(value: string | null) {
   return value?.startsWith("/") && !value.startsWith("//") ? value : "/dashboard";
+}
+
+function getSafePlan(value: string | null): Plan {
+  return value === "PRO" || value === "PREMIUM" ? value : "FREE";
 }

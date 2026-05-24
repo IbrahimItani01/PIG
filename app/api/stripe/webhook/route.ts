@@ -47,6 +47,11 @@ async function handleCheckoutCompleted(stripe: Stripe, session: Stripe.Checkout.
   const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription.id;
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   await syncStripeSubscription(subscription, session.metadata?.userId ?? session.client_reference_id ?? undefined);
+
+  const previousSubscriptionId = session.metadata?.previousSubscriptionId;
+  if (previousSubscriptionId && previousSubscriptionId !== subscription.id) {
+    await stripe.subscriptions.cancel(previousSubscriptionId);
+  }
 }
 
 async function syncStripeSubscription(subscription: Stripe.Subscription, explicitUserId?: string) {
@@ -70,6 +75,10 @@ async function syncStripeSubscription(subscription: Stripe.Subscription, explici
         },
       });
   const userId = explicitUserId ?? existing?.userId;
+  if (existing?.stripeSubscriptionId && existing.stripeSubscriptionId !== subscription.id && subscription.status === "canceled") {
+    return;
+  }
+
   if (!userId) {
     console.warn("Stripe subscription webhook could not be matched to a user", {
       subscriptionId: subscription.id,
@@ -132,7 +141,7 @@ function mapStripeStatus(status: Stripe.Subscription.Status): SubscriptionStatus
 }
 
 function parsePlan(value?: string | null): Plan | null {
-  if (value === "PRO" || value === "PREMIUM") return value;
+  if (value === "FREE" || value === "PRO" || value === "PREMIUM") return value;
   return null;
 }
 

@@ -11,7 +11,7 @@ export function CheckoutButton({
   variant = "default",
   disabled,
 }: {
-  plan: Extract<Plan, "PRO" | "PREMIUM">;
+  plan: Plan;
   children: React.ReactNode;
   variant?: "default" | "secondary" | "outline";
   disabled?: boolean;
@@ -29,7 +29,7 @@ export function CheckoutButton({
         onClick={async () => {
           setLoading(true);
           setMessage(null);
-          const response = await fetch("/api/stripe/checkout", {
+          const response = await fetch("/api/stripe/plan", {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({ plan }),
@@ -41,8 +41,12 @@ export function CheckoutButton({
             window.location.href = payload.url;
             return;
           }
+          if (payload.redirectTo) {
+            window.location.href = payload.redirectTo;
+            return;
+          }
 
-          setMessage(payload.error ?? payload.message ?? "Checkout is unavailable.");
+          setMessage(payload.error ?? payload.message ?? "Plan change is unavailable.");
         }}
       >
         <CreditCard className="h-4 w-4" />

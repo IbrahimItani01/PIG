@@ -3,6 +3,7 @@ import { plans } from "@/config/plans";
 import { getOptionalEnv } from "@/lib/utils/env";
 
 export const paidPlans = Object.values(plans).filter((plan) => plan.priceCents > 0);
+export const stripeTrackedPlans = Object.values(plans).filter((plan) => plan.stripePriceEnvVar);
 
 export function getStripePriceIdForPlan(plan: Plan) {
   const envVar = plans[plan].stripePriceEnvVar;
@@ -12,7 +13,7 @@ export function getStripePriceIdForPlan(plan: Plan) {
 export function getPlanByStripePriceId(priceId?: string | null): Plan | null {
   if (!priceId) return null;
 
-  for (const plan of paidPlans) {
+  for (const plan of stripeTrackedPlans) {
     if (plan.stripePriceEnvVar && getOptionalEnv(plan.stripePriceEnvVar) === priceId) {
       return plan.name;
     }

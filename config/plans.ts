@@ -30,6 +30,7 @@ export const plans: Record<Plan, PlanConfig> = {
     availableModels: ["default-fast", "gemini-fast"],
     features: ["30 evaluations per month", "10 prompt tests per month", "Fast models", "Prompt history"],
     cta: "Start free",
+    stripePriceEnvVar: "STRIPE_FREE_PRICE_ID",
   },
   PRO: {
     name: "PRO",

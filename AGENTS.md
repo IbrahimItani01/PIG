@@ -75,18 +75,21 @@ Plan descriptions:
 - Premium: "For power users who need larger monthly quotas, all supported providers, and capped access to quality models."
 
 Stripe products/prices should use the same names, prices, and descriptions as `config/plans.ts`. Do not duplicate plan descriptions in page-local hardcoded strings.
+All three plans, including Free, have Stripe recurring Price IDs. New users choose a plan before signup authentication, then `/onboarding/plan` activates the selected plan after the auth callback.
 
 Required Stripe env vars:
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_FREE_PRICE_ID`
 - `STRIPE_PRO_PRICE_ID`
 - `STRIPE_PREMIUM_PRICE_ID`
 
 Billing implementation notes:
 - `lib/billing/stripe-plans.ts` maps Stripe price IDs to `Plan`.
-- `app/api/stripe/checkout/route.ts` accepts `PRO` or `PREMIUM`.
-- Existing paid subscribers should use the Stripe Customer Portal for subscription changes.
+- `app/api/stripe/plan/route.ts` is the primary plan-management endpoint. It creates Free Stripe subscriptions, opens Checkout for first paid subscriptions, and updates existing subscription items for upgrades/downgrades.
+- `app/api/stripe/checkout/route.ts` is legacy checkout support; prefer `/api/stripe/plan` for plan changes.
+- Existing subscribers can also use the Stripe Customer Portal for invoices, payment methods, cancellation, and subscription management.
 - `app/api/stripe/webhook/route.ts` persists subscription status, active plan, customer/subscription IDs, price ID, billing period dates, and cancellation fields.
 - Subscription schema includes `plan`, `currentPeriodStart`, `currentPeriodEnd`, `cancelAt`, and `canceledAt`.
 
@@ -164,6 +167,7 @@ npm run seed
 - Auth UI supports only Google OAuth and passwordless email magic links.
 - Email/password login and password reset flows are deprecated; do not add password fields back to the auth UI.
 - `components/auth/auth-form.tsx` sends magic links with `signInWithOtp` and starts Google OAuth with `signInWithOAuth`.
+- In signup mode, `components/auth/auth-form.tsx` must keep plan selection before Google/email auth and pass the selected plan through the auth callback to `/onboarding/plan`.
 - OAuth and PKCE magic-link callbacks are handled by `/auth/callback`.
 - If Supabase email templates are customized for server-side token-hash verification, point them to `/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/dashboard`.
 - Configure Google provider and allowed redirect URLs in Supabase Auth. Include local and production URLs for `/auth/callback` and `/auth/confirm`.
