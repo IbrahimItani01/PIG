@@ -7,6 +7,7 @@ import type { Plan } from "@prisma/client";
 import { brand } from "@/config/brand";
 import { plans } from "@/config/plans";
 import { Button } from "@/components/ui/button";
+import { ButtonLoader } from "@/components/ui/button-loader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -112,8 +113,8 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         ) : null}
 
         <Button type="button" variant="secondary" className="w-full" disabled={loading} onClick={signInWithGoogle}>
-          <KeyRound className="h-4 w-4" />
-          Continue with Google
+          {loading ? <ButtonLoader /> : <KeyRound className="h-4 w-4" />}
+          {loading ? "Connecting" : "Continue with Google"}
         </Button>
 
         <form className="space-y-4" onSubmit={onSubmit}>
@@ -130,7 +131,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           {message ? <p className="text-sm text-success">{message}</p> : null}
           <Button className="w-full" disabled={loading}>
-            <Mail className="h-4 w-4" />
+            {loading ? <ButtonLoader /> : <Mail className="h-4 w-4" />}
             {loading ? "Please wait" : "Email me a secure link"}
           </Button>
         </form>

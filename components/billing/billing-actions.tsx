@@ -4,6 +4,7 @@ import { CreditCard, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import type { Plan } from "@prisma/client";
 import { Button } from "@/components/ui/button";
+import { ButtonLoader } from "@/components/ui/button-loader";
 
 export function CheckoutButton({
   plan,
@@ -49,7 +50,7 @@ export function CheckoutButton({
           setMessage(payload.error ?? payload.message ?? "Plan change is unavailable.");
         }}
       >
-        <CreditCard className="h-4 w-4" />
+        {loading ? <ButtonLoader /> : <CreditCard className="h-4 w-4" />}
         {loading ? "Opening checkout" : children}
       </Button>
       {message ? <p className="text-xs text-muted-foreground">{message}</p> : null}
@@ -82,7 +83,7 @@ export function PortalButton({ disabled }: { disabled?: boolean }) {
           setMessage(payload.error ?? payload.message ?? "Billing portal is unavailable.");
         }}
       >
-        <ExternalLink className="h-4 w-4" />
+        {loading ? <ButtonLoader /> : <ExternalLink className="h-4 w-4" />}
         {loading ? "Opening portal" : "Manage billing"}
       </Button>
       {message ? <p className="text-xs text-muted-foreground">{message}</p> : null}

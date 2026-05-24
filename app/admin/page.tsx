@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { modelConfigs } from "@/config/models";
 import { messages } from "@/config/messages";
 import { requireUser } from "@/lib/auth/session";
+import { toAppShellUser } from "@/lib/auth/app-shell-user";
 import { getPrisma } from "@/lib/db/prisma";
 
 export default async function AdminPage() {
@@ -17,7 +18,7 @@ export default async function AdminPage() {
   });
 
   return (
-    <AppShell role={user.role} user={user}>
+    <AppShell role={user.role} user={toAppShellUser(user)}>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal">Admin/dev</h1>

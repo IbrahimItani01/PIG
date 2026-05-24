@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { brand } from "@/config/brand";
+import { ReduxProvider } from "@/components/providers/redux-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +18,9 @@ export default function RootLayout({
       lang="en"
       className="h-full antialiased"
     >
-      <body className="min-h-full bg-background text-foreground">{children}</body>
+      <body className="min-h-full bg-background text-foreground">
+        <ReduxProvider>{children}</ReduxProvider>
+      </body>
     </html>
   );
 }

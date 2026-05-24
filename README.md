@@ -8,6 +8,7 @@ Tagline: “Grade your prompts before AI grades your results.”
 
 - Dark-mode-first SaaS UI with landing, auth, dashboard, history, result, settings, and admin/dev pages.
 - Supabase Auth with Google OAuth and passwordless email sign-in.
+- Redux-backed dashboard loading state with automatic Supabase Realtime refreshes for user-owned data.
 - Signup requires users to choose Free, Pro, or Premium before authenticating; the selected plan is activated after the auth callback.
 - Account settings for profile updates, default model preference, auth status, sign-out, and account deletion.
 - Prisma/Postgres schema for users, evaluations, versions, test runs, templates, usage events, and Stripe-ready subscriptions.
@@ -21,7 +22,7 @@ Tagline: “Grade your prompts before AI grades your results.”
 
 ## Tech Stack
 
-Next.js App Router, TypeScript, Tailwind CSS, shadcn-style owned components, Framer Motion, Supabase Auth, Supabase Postgres, Prisma ORM, Zod, Vercel AI SDK, Upstash Redis, Stripe, Sentry, Vitest.
+Next.js App Router, TypeScript, Tailwind CSS, shadcn-style owned components, Redux Toolkit, React Redux, Framer Motion, Supabase Auth, Supabase Postgres, Prisma ORM, Zod, Vercel AI SDK, Upstash Redis, Stripe, Sentry, Vitest.
 
 ## Architecture
 
@@ -81,8 +82,9 @@ npm test
 5. Enable Google as an auth provider in Supabase Auth.
 6. Enable email OTP / magic link auth and keep password auth disabled for new UI flows.
 7. Add app redirect URLs for `/auth/callback` and `/auth/confirm`.
-8. Run Prisma migrations.
-9. Run `supabase/policies.sql` in the SQL editor to enable RLS policies.
+8. Enable Supabase Realtime for `users`, `prompt_evaluations`, `usage_events`, and `subscriptions` if automatic dashboard refreshes are expected.
+9. Run Prisma migrations.
+10. Run `supabase/policies.sql` in the SQL editor to enable RLS policies.
 
 ## Prisma
 

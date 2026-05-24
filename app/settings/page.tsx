@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { plans } from "@/config/plans";
 import { requireUser } from "@/lib/auth/session";
+import { toAppShellUser } from "@/lib/auth/app-shell-user";
 import { getAllowedModels } from "@/lib/ai/model-registry";
 
 export default async function SettingsPage() {
@@ -13,7 +14,7 @@ export default async function SettingsPage() {
   const models = getAllowedModels(user.plan);
 
   return (
-    <AppShell role={user.role} user={user}>
+    <AppShell role={user.role} user={toAppShellUser(user)}>
       <div className="max-w-4xl space-y-6">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal">Settings</h1>

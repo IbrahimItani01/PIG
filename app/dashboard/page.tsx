@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { dashboardCards } from "@/config/dashboard";
 import { messages } from "@/config/messages";
 import { requireUser } from "@/lib/auth/session";
+import { toAppShellUser } from "@/lib/auth/app-shell-user";
 import { getBillingUsageSummary } from "@/lib/billing/usage";
 import { getPrisma } from "@/lib/db/prisma";
 
@@ -36,7 +37,7 @@ export default async function DashboardPage() {
   };
 
   return (
-    <AppShell role={user.role} user={user}>
+    <AppShell role={user.role} user={toAppShellUser(user)}>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div className="flex items-center gap-4">

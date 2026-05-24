@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { plans } from "@/config/plans";
 import { requireUser } from "@/lib/auth/session";
+import { toAppShellUser } from "@/lib/auth/app-shell-user";
 import { getBillingUsageSummary } from "@/lib/billing/usage";
 
 const metricCards = [
@@ -22,7 +23,7 @@ export default async function BillingPage() {
   const canOpenPortal = Boolean(subscription?.stripeCustomerId);
 
   return (
-    <AppShell role={user.role} user={user}>
+    <AppShell role={user.role} user={toAppShellUser(user)}>
       <div className="space-y-6">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div>

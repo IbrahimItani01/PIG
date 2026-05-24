@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { ButtonLoader } from "@/components/ui/button-loader";
 import { messages } from "@/config/messages";
 import { outputFormats, toneOptions, useCaseConfig } from "@/config/use-cases";
 import { detectSecrets } from "@/lib/utils/secrets";
@@ -129,7 +130,10 @@ export function EvaluationForm({ models }: { models: ResolvedModel[] }) {
             </div>
           </div>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
-          <Button disabled={loading || prompt.length < 20}>{loading ? "Evaluating" : "Evaluate prompt"}</Button>
+          <Button disabled={loading || prompt.length < 20}>
+            {loading ? <ButtonLoader /> : null}
+            {loading ? "Evaluating" : "Evaluate prompt"}
+          </Button>
         </form>
       </CardContent>
     </Card>

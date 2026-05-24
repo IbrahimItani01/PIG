@@ -1,6 +1,7 @@
 import { EvaluationForm } from "@/components/evaluation/evaluation-form";
 import { AppShell } from "@/components/layout/app-shell";
 import { requireUser } from "@/lib/auth/session";
+import { toAppShellUser } from "@/lib/auth/app-shell-user";
 import { getAllowedModels } from "@/lib/ai/model-registry";
 
 export default async function NewEvaluationPage() {
@@ -12,7 +13,7 @@ export default async function NewEvaluationPage() {
     : models;
 
   return (
-    <AppShell role={user.role} user={user}>
+    <AppShell role={user.role} user={toAppShellUser(user)}>
       <div className="mx-auto max-w-4xl space-y-6">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal">Grade a prompt</h1>

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { requireUser } from "@/lib/auth/session";
+import { toAppShellUser } from "@/lib/auth/app-shell-user";
 import { assertOwnsEvaluation } from "@/lib/auth/authorization";
 
 const scoreFields: Array<[RubricKey, string]> = [
@@ -31,7 +32,7 @@ export default async function EvaluationResultPage({ params }: { params: Promise
   const recommendations = Array.isArray(evaluation.recommendations) ? (evaluation.recommendations as string[]) : [];
 
   return (
-    <AppShell role={user.role} user={user}>
+    <AppShell role={user.role} user={toAppShellUser(user)}>
       <div className="space-y-6">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div>

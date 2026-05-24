@@ -7,6 +7,7 @@ import type { Plan } from "@prisma/client";
 import type { LogicalModelId } from "@/config/models";
 import type { ResolvedModel } from "@/lib/ai/model-registry";
 import { Button } from "@/components/ui/button";
+import { ButtonLoader } from "@/components/ui/button-loader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -136,11 +137,11 @@ export function AccountSettingsForm({
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button type="submit" disabled={saving || deleting}>
-            <Save className="h-4 w-4" />
+            {saving ? <ButtonLoader /> : <Save className="h-4 w-4" />}
             {saving ? "Saving" : "Save account"}
           </Button>
           <Button type="button" variant="secondary" disabled={signingOut || deleting} onClick={signOut}>
-            <LogOut className="h-4 w-4" />
+            {signingOut ? <ButtonLoader /> : <LogOut className="h-4 w-4" />}
             {signingOut ? "Signing out" : "Sign out"}
           </Button>
         </div>
@@ -170,7 +171,7 @@ export function AccountSettingsForm({
             disabled={deleting || deleteConfirmation !== user.email}
             onClick={deleteAccount}
           >
-            <Trash2 className="h-4 w-4" />
+            {deleting ? <ButtonLoader /> : <Trash2 className="h-4 w-4" />}
             {deleting ? "Deleting" : "Delete account"}
           </Button>
         </div>

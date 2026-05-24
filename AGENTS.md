@@ -18,6 +18,7 @@ When project behavior, architecture, plans, environment variables, billing, data
 
 - Next.js 16 App Router, React 19, TypeScript.
 - Tailwind CSS with owned shadcn-style UI primitives in `components/ui`.
+- Redux Toolkit and React Redux for global client-side UI state, navigation loading, and realtime sync metadata.
 - Supabase Auth and Supabase Postgres.
 - Prisma ORM in `prisma/schema.prisma`.
 - Vercel AI SDK using Vercel AI Gateway model strings.
@@ -52,6 +53,8 @@ Do not initialize database, Redis, Stripe, or other service clients eagerly at m
 - `app/auth/confirm/route.ts`: Supabase email token-hash confirmation endpoint for SSR email templates.
 - `app/api/account/route.ts`: authenticated profile updates, preferred-model updates, and account deletion.
 - `components/`: feature and UI components.
+- `components/providers/redux-provider.tsx`: root Redux provider and global loading overlay wiring.
+- `components/layout/realtime-refresh.tsx`: Supabase Realtime listener that refreshes authenticated dashboard data when user-owned database rows change.
 - `config/`: product, plan, model, rubric, navigation, and content config.
 - `lib/ai/`: model registry, prompt evaluation, prompt testing, schemas, scoring.
 - `lib/auth/`: Supabase session helpers and ownership checks.
@@ -176,6 +179,8 @@ Prisma commands require both `DATABASE_URL` and `DIRECT_URL` to be set in the sh
 - Authenticated users are redirected away from `/login` and `/signup` to `/dashboard`.
 - Account management lives on `/settings`: users can update display name, choose an allowed default model, inspect auth/session details, sign out, and delete their account.
 - Account deletion requires the user to type their email address, cancels any active Stripe subscription, deletes app data through Prisma cascade relations, and removes the Supabase Auth user through the service-role admin API.
+- Authenticated dashboard pages use Redux for global loading state and subscribe to Supabase Realtime for user-owned `users`, `prompt_evaluations`, `usage_events`, and `subscriptions` changes. Realtime events automatically trigger `router.refresh()` so users do not need to manually reload.
+- Supabase Realtime must be enabled for the relevant public tables in production for automatic dashboard updates to work.
 - User avatars use Google/Supabase `avatarUrl` when present and fall back to initials via `components/account/user-avatar.tsx`.
 - `app/evaluations/new/page.tsx` orders available models with the user's saved preferred model first.
 - `requireUser()` is for server components/pages.
@@ -196,6 +201,9 @@ Prisma commands require both `DATABASE_URL` and `DIRECT_URL` to be set in the sh
 - Use shared config (`config/plans.ts`, `config/site-content.ts`, `config/models.ts`) instead of duplicating product copy or limits in page code.
 - Billing and marketing pricing cards should render plan name, price, description, CTA, and features from plan config.
 - Evaluation form labels use `*` only for fields the user must fill manually. Fields with app defaults should stay unstarred and communicate their default fallback in placeholder/help text where applicable.
+- Use the shared Redux UI state for full-screen route/realtime loading feedback instead of adding unrelated local overlay implementations.
+- Async buttons should show an inline spinner using `components/ui/button-loader.tsx`.
+- Buttons must visibly use pointer cursors when enabled and not-allowed cursors when disabled.
 
 ## Verification Commands
 
@@ -216,4 +224,5 @@ If `next build` fails in a sandbox with a Turbopack port-binding permission erro
 - Configure Stripe webhook endpoint and `STRIPE_WEBHOOK_SECRET`.
 - Apply the current Prisma schema to the deployed database.
 - Ensure `SUPABASE_SERVICE_ROLE_KEY` is configured before enabling account deletion in production.
+- Enable Supabase Realtime publication for dashboard tables if realtime UI sync is expected.
 - Configure Sentry DSN and release tracking if production monitoring is required.

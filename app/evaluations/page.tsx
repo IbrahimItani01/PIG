@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { messages } from "@/config/messages";
 import { requireUser } from "@/lib/auth/session";
+import { toAppShellUser } from "@/lib/auth/app-shell-user";
 import { getPrisma } from "@/lib/db/prisma";
 
 export default async function EvaluationsPage() {
@@ -17,7 +18,7 @@ export default async function EvaluationsPage() {
   });
 
   return (
-    <AppShell role={user.role} user={user}>
+    <AppShell role={user.role} user={toAppShellUser(user)}>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
