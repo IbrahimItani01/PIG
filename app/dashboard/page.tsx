@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { UserAvatar } from "@/components/account/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -35,12 +36,15 @@ export default async function DashboardPage() {
   };
 
   return (
-    <AppShell role={user.role}>
+    <AppShell role={user.role} user={user}>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-normal">Dashboard</h1>
-            <p className="text-muted-foreground">Prompt quality, usage, and recent evaluations.</p>
+          <div className="flex items-center gap-4">
+            <UserAvatar name={user.name} email={user.email} imageUrl={user.avatarUrl} size="lg" />
+            <div>
+              <h1 className="text-3xl font-semibold tracking-normal">Dashboard</h1>
+              <p className="text-muted-foreground">Prompt quality, usage, and recent evaluations.</p>
+            </div>
           </div>
           <Button asChild>
             <Link href="/evaluations/new"><PlusCircle className="h-4 w-4" />New evaluation</Link>

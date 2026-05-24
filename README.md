@@ -7,7 +7,8 @@ Tagline: “Grade your prompts before AI grades your results.”
 ## Features
 
 - Dark-mode-first SaaS UI with landing, auth, dashboard, history, result, settings, and admin/dev pages.
-- Supabase Auth with protected dashboard routes.
+- Supabase Auth with Google OAuth and passwordless email sign-in.
+- Account settings for profile updates, default model preference, auth status, and sign-out.
 - Prisma/Postgres schema for users, evaluations, versions, test runs, templates, usage events, and Stripe-ready subscriptions.
 - Server-side AI provider abstraction for default, OpenAI, Anthropic, and Gemini routes.
 - Zod validation for request inputs and AI structured outputs.
@@ -75,8 +76,11 @@ npm test
 2. Add the Supabase URL and anon key to `.env.local`.
 3. Set `DATABASE_URL` to the pooled Postgres connection string.
 4. Set `DIRECT_URL` to the direct connection string for migrations.
-5. Run Prisma migrations.
-6. Run `supabase/policies.sql` in the SQL editor to enable RLS policies.
+5. Enable Google as an auth provider in Supabase Auth.
+6. Enable email OTP / magic link auth and keep password auth disabled for new UI flows.
+7. Add app redirect URLs for `/auth/callback` and `/auth/confirm`.
+8. Run Prisma migrations.
+9. Run `supabase/policies.sql` in the SQL editor to enable RLS policies.
 
 ## Prisma
 
@@ -93,7 +97,7 @@ The seed script adds public prompt templates and a demo evaluation record.
 1. Push the repository to GitHub.
 2. Import the project in Vercel.
 3. Add all environment variables from `.env.example`.
-4. Enable Vercel AI Gateway or provide provider API keys.
+4. Enable Vercel AI Gateway and set `AI_GATEWAY_API_KEY`.
 5. Use a Supabase pooled database URL for runtime and direct URL for migrations.
 6. Deploy.
 
@@ -106,6 +110,9 @@ npm run build
 ## Security Notes
 
 - Dashboard routes are protected by Supabase middleware.
+- Auth UI supports Google OAuth and passwordless email links only. Email/password login is deprecated.
+- Authenticated users are redirected away from login/signup pages.
+- Account updates are validated server-side and preferred models must be allowed by the user's plan.
 - API routes validate inputs with Zod and enforce Prisma ownership checks.
 - RLS SQL policies are provided for Supabase table access.
 - Service role keys are never used in client components.

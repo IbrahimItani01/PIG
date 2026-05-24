@@ -1,15 +1,22 @@
 import Link from "next/link";
 import { brand } from "@/config/brand";
 import { adminNavigation, appNavigation } from "@/config/navigation";
+import { UserAvatar } from "@/components/account/user-avatar";
 import { Badge } from "@/components/ui/badge";
 import type { UserRole } from "@prisma/client";
 
 export function AppShell({
   children,
   role,
+  user,
 }: {
   children: React.ReactNode;
   role: UserRole;
+  user?: {
+    name: string | null;
+    email: string;
+    avatarUrl: string | null;
+  };
 }) {
   const navigation = role === "ADMIN" ? [...appNavigation, ...adminNavigation] : appNavigation;
 
@@ -34,6 +41,15 @@ export function AppShell({
         <Badge className="mt-8" variant="secondary">
           {role.toLowerCase()} workspace
         </Badge>
+        {user ? (
+          <Link href="/settings" className="absolute bottom-5 left-5 right-5 flex items-center gap-3 rounded-md border bg-background/70 p-3 text-sm transition hover:bg-secondary">
+            <UserAvatar name={user.name} email={user.email} imageUrl={user.avatarUrl} size="md" />
+            <div className="min-w-0">
+              <div className="truncate font-medium">{user.name ?? "Account"}</div>
+              <div className="truncate text-xs text-muted-foreground">{user.email}</div>
+            </div>
+          </Link>
+        ) : null}
       </aside>
       <main className="min-h-screen lg:pl-64">
         <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 lg:px-8">{children}</div>

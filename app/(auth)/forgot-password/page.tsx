@@ -1,14 +1,5 @@
-import Link from "next/link";
-import { Suspense } from "react";
-import { AuthForm } from "@/components/auth/auth-form";
+import { redirect } from "next/navigation";
 
 export default function ForgotPasswordPage() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-4">
-      <Suspense>
-        <AuthForm mode="forgot" />
-      </Suspense>
-      <Link href="/login" className="text-sm text-muted-foreground">Back to login</Link>
-    </main>
-  );
+  redirect("/login?message=Password%20login%20has%20been%20replaced%20with%20passwordless%20sign-in.");
 }

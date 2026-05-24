@@ -31,7 +31,7 @@ export default async function EvaluationResultPage({ params }: { params: Promise
   const recommendations = Array.isArray(evaluation.recommendations) ? (evaluation.recommendations as string[]) : [];
 
   return (
-    <AppShell role={user.role}>
+    <AppShell role={user.role} user={user}>
       <div className="space-y-6">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div>

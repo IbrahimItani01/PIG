@@ -1,8 +1,13 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
+import { getCurrentUser } from "@/lib/auth/session";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const user = await getCurrentUser();
+  if (user) redirect("/dashboard");
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-4">
       <Suspense>
@@ -10,7 +15,6 @@ export default function LoginPage() {
       </Suspense>
       <div className="flex gap-4 text-sm text-muted-foreground">
         <Link href="/signup">Create account</Link>
-        <Link href="/forgot-password">Forgot password</Link>
       </div>
     </main>
   );

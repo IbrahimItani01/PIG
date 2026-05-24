@@ -5,6 +5,10 @@ import { getPrisma } from "@/lib/db/prisma";
 
 export type AuthenticatedUser = PrismaUser & {
   authId: string;
+  authProvider: string;
+  authProviders: string[];
+  emailConfirmedAt: string | null;
+  lastSignInAt: string | null;
 };
 
 export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
@@ -22,7 +26,6 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
     where: { id: user.id },
     update: {
       email: user.email,
-      name: user.user_metadata?.name ?? user.user_metadata?.full_name ?? undefined,
       avatarUrl: user.user_metadata?.avatar_url ?? undefined,
     },
     create: {
@@ -33,7 +36,14 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
     },
   });
 
-  return { ...dbUser, authId: user.id };
+  return {
+    ...dbUser,
+    authId: user.id,
+    authProvider: typeof user.app_metadata?.provider === "string" ? user.app_metadata.provider : "email",
+    authProviders: Array.isArray(user.app_metadata?.providers) ? user.app_metadata.providers : [],
+    emailConfirmedAt: user.email_confirmed_at ?? null,
+    lastSignInAt: user.last_sign_in_at ?? null,
+  };
 }
 
 export async function requireUser() {

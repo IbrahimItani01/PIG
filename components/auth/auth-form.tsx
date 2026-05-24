@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { KeyRound, Mail } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { brand } from "@/config/brand";
 import { Button } from "@/components/ui/button";
@@ -9,17 +10,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createSupabaseBrowserClient } from "@/lib/auth/supabase-client";
 
-type AuthMode = "login" | "signup" | "forgot";
+type AuthMode = "login" | "signup";
 
 export function AuthForm({ mode }: { mode: AuthMode }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(searchParams.get("message"));
+  const [error, setError] = useState<string | null>(searchParams.get("error"));
   const [loading, setLoading] = useState(false);
+  const isSignup = mode === "signup";
+  const next = getSafeNext(searchParams.get("next"));
+  const emailRedirectTo = typeof window === "undefined"
+    ? undefined
+    : `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,33 +31,18 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     setError(null);
     setMessage(null);
     const supabase = createSupabaseBrowserClient();
-    const next = searchParams.get("next") ?? "/dashboard";
 
     try {
-      if (mode === "login") {
-        const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-        if (authError) throw authError;
-        router.push(next);
-        router.refresh();
-      }
-
-      if (mode === "signup") {
-        const { error: authError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { name } },
-        });
-        if (authError) throw authError;
-        setMessage("Check your email to confirm your account, then sign in.");
-      }
-
-      if (mode === "forgot") {
-        const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/login`,
-        });
-        if (authError) throw authError;
-        setMessage("Password reset instructions sent.");
-      }
+      const { error: authError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo,
+          shouldCreateUser: true,
+          data: isSignup && name.trim().length > 0 ? { name: name.trim() } : undefined,
+        },
+      });
+      if (authError) throw authError;
+      setMessage(isSignup ? "Check your email to finish creating your account." : "Check your email for a secure sign-in link.");
     } catch (authError) {
       setError(authError instanceof Error ? authError.message : "Authentication failed.");
     } finally {
@@ -61,19 +50,47 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     }
   }
 
+  async function signInWithGoogle() {
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+    const supabase = createSupabaseBrowserClient();
+
+    try {
+      const { error: authError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: emailRedirectTo,
+        },
+      });
+      if (authError) throw authError;
+    } catch (authError) {
+      setError(authError instanceof Error ? authError.message : "Google sign-in failed.");
+      setLoading(false);
+    }
+  }
+
   const titles = {
-    login: `Log in to ${brand.fullName}`,
+    login: `Sign in to ${brand.fullName}`,
     signup: `Create your ${brand.fullName} account`,
-    forgot: `Reset your ${brand.fullName} password`,
+  };
+  const descriptions = {
+    login: "Use Google or a secure email link. Password sign-in is no longer supported.",
+    signup: "Create your account with Google or a secure email link. No password required.",
   };
 
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>{titles[mode]}</CardTitle>
-        <CardDescription>{brand.tagline}</CardDescription>
+        <CardDescription>{descriptions[mode]}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <Button type="button" variant="secondary" className="w-full" disabled={loading} onClick={signInWithGoogle}>
+          <KeyRound className="h-4 w-4" />
+          Continue with Google
+        </Button>
+
         <form className="space-y-4" onSubmit={onSubmit}>
           {mode === "signup" ? (
             <div className="space-y-2">
@@ -85,19 +102,18 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" />
           </div>
-          {mode !== "forgot" ? (
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} autoComplete={mode === "login" ? "current-password" : "new-password"} />
-            </div>
-          ) : null}
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           {message ? <p className="text-sm text-success">{message}</p> : null}
           <Button className="w-full" disabled={loading}>
-            {loading ? "Please wait" : mode === "login" ? "Log in" : mode === "signup" ? "Sign up" : "Send reset email"}
+            <Mail className="h-4 w-4" />
+            {loading ? "Please wait" : "Email me a secure link"}
           </Button>
         </form>
       </CardContent>
     </Card>
   );
+}
+
+function getSafeNext(value: string | null) {
+  return value?.startsWith("/") && !value.startsWith("//") ? value : "/dashboard";
 }

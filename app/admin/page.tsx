@@ -17,7 +17,7 @@ export default async function AdminPage() {
   });
 
   return (
-    <AppShell role={user.role}>
+    <AppShell role={user.role} user={user}>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-semibold tracking-normal">Admin/dev</h1>
