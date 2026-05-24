@@ -1,0 +1,21 @@
+import { EvaluationForm } from "@/components/evaluation/evaluation-form";
+import { AppShell } from "@/components/layout/app-shell";
+import { requireUser } from "@/lib/auth/session";
+import { getAllowedModels } from "@/lib/ai/model-registry";
+
+export default async function NewEvaluationPage() {
+  const user = await requireUser();
+  const models = getAllowedModels(user.plan);
+
+  return (
+    <AppShell role={user.role}>
+      <div className="mx-auto max-w-4xl space-y-6">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-normal">Grade a prompt</h1>
+          <p className="text-muted-foreground">Evaluate prompt quality and generate stronger versions.</p>
+        </div>
+        <EvaluationForm models={models} />
+      </div>
+    </AppShell>
+  );
+}

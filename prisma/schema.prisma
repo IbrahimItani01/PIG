@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum Plan {
+  FREE
+  PRO
+  PREMIUM
+}
+
+enum PromptUseCase {
+  GENERAL
+  CODING
+  MARKETING
+  EMAIL
+  RESEARCH
+  STUDY
+  BUSINESS
+  DATA_ANALYSIS
+  CREATIVE_WRITING
+}
+
+enum PromptVersionType {
+  ORIGINAL
+  QUICK_IMPROVED
+  STRUCTURED_IMPROVED
+  ADVANCED_IMPROVED
+}
+
+enum UsageEventType {
+  PROMPT_EVALUATION
+  PROMPT_REWRITE
+  PROMPT_TEST_RUN
+  EXPORT
+}
+
+enum SubscriptionStatus {
+  INACTIVE
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+}
+
+model User {
+  id                String        @id @default(uuid()) @db.Uuid
+  email             String        @unique
+  name              String?
+  avatarUrl         String?
+  role              UserRole      @default(USER)
+  plan              Plan          @default(FREE)
+  preferredProvider String        @default("default")
+  preferredModel    String        @default("default-fast")
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  evaluations       PromptEvaluation[]
+  usageEvents       UsageEvent[]
+  subscription      Subscription?
+
+  @@map("users")
+}
+
+model PromptEvaluation {
+  id                String        @id @default(uuid()) @db.Uuid
+  userId            String        @db.Uuid
+  title             String
+  originalPrompt    String        @db.Text
+  useCase           PromptUseCase
+  targetAudience    String
+  desiredOutput     String
+  tone              String
+  modelProvider     String
+  modelId           String
+  overallScore      Float
+  clarityScore      Int
+  contextScore      Int
+  specificityScore  Int
+  constraintsScore  Int
+  outputFormatScore Int
+  examplesScore     Int
+  safetyScore       Int
+  testabilityScore  Int
+  summary           String        @db.Text
+  weaknesses        Json
+  recommendations   Json
+  improvedPrompt    String        @db.Text
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  versions          PromptVersion[]
+  testRuns          PromptTestRun[]
+
+  @@index([userId, createdAt])
+  @@map("prompt_evaluations")
+}
+
+model PromptVersion {
+  id             String            @id @default(uuid()) @db.Uuid
+  evaluationId   String            @db.Uuid
+  label          String
+  promptText     String            @db.Text
+  versionType    PromptVersionType
+  notes          String?           @db.Text
+  createdAt      DateTime          @default(now())
+  evaluation     PromptEvaluation  @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  testRuns       PromptTestRun[]
+
+  @@index([evaluationId])
+  @@map("prompt_versions")
+}
+
+model PromptTestRun {
+  id                String            @id @default(uuid()) @db.Uuid
+  evaluationId      String            @db.Uuid
+  promptVersionId   String?           @db.Uuid
+  modelProvider     String
+  modelId           String
+  output            String            @db.Text
+  qualityScore      Int
+  comparisonNotes   String            @db.Text
+  latencyMs         Int
+  inputTokens       Int?
+  outputTokens      Int?
+  estimatedCostUsd  Decimal?          @db.Decimal(10, 6)
+  createdAt         DateTime          @default(now())
+  evaluation        PromptEvaluation  @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  promptVersion     PromptVersion?    @relation(fields: [promptVersionId], references: [id], onDelete: SetNull)
+
+  @@index([evaluationId, createdAt])
+  @@map("prompt_test_runs")
+}
+
+model PromptTemplate {
+  id           String    @id @default(uuid()) @db.Uuid
+  name         String
+  slug         String    @unique
+  category     String
+  description  String    @db.Text
+  templateText String    @db.Text
+  isPublic     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+
+  @@map("prompt_templates")
+}
+
+model UsageEvent {
+  id                String          @id @default(uuid()) @db.Uuid
+  userId            String          @db.Uuid
+  eventType         UsageEventType
+  modelProvider     String?
+  modelId           String?
+  inputTokens       Int?
+  outputTokens      Int?
+  estimatedCostUsd  Decimal?        @db.Decimal(10, 6)
+  metadata          Json?
+  createdAt         DateTime        @default(now())
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("usage_events")
+}
+
+model Subscription {
+  id                    String              @id @default(uuid()) @db.Uuid
+  userId                String              @unique @db.Uuid
+  stripeCustomerId      String?             @unique
+  stripeSubscriptionId  String?             @unique
+  status                SubscriptionStatus  @default(INACTIVE)
+  priceId               String?
+  currentPeriodEnd      DateTime?
+  cancelAtPeriodEnd     Boolean             @default(false)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
