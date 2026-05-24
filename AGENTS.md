@@ -50,7 +50,7 @@ Do not initialize database, Redis, Stripe, or other service clients eagerly at m
 - `app/api/stripe/webhook/route.ts`: Stripe subscription webhook sync.
 - `app/auth/callback/route.ts`: Supabase OAuth/magic-link code exchange callback.
 - `app/auth/confirm/route.ts`: Supabase email token-hash confirmation endpoint for SSR email templates.
-- `app/api/account/route.ts`: authenticated profile and preferred-model updates.
+- `app/api/account/route.ts`: authenticated profile updates, preferred-model updates, and account deletion.
 - `components/`: feature and UI components.
 - `config/`: product, plan, model, rubric, navigation, and content config.
 - `lib/ai/`: model registry, prompt evaluation, prompt testing, schemas, scoring.
@@ -174,7 +174,8 @@ Prisma commands require both `DATABASE_URL` and `DIRECT_URL` to be set in the sh
 - If Supabase email templates are customized for server-side token-hash verification, point them to `/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/dashboard`.
 - Configure Google provider and allowed redirect URLs in Supabase Auth. Include local and production URLs for `/auth/callback` and `/auth/confirm`.
 - Authenticated users are redirected away from `/login` and `/signup` to `/dashboard`.
-- Account management lives on `/settings`: users can update display name, choose an allowed default model, inspect auth/session details, and sign out.
+- Account management lives on `/settings`: users can update display name, choose an allowed default model, inspect auth/session details, sign out, and delete their account.
+- Account deletion requires the user to type their email address, cancels any active Stripe subscription, deletes app data through Prisma cascade relations, and removes the Supabase Auth user through the service-role admin API.
 - User avatars use Google/Supabase `avatarUrl` when present and fall back to initials via `components/account/user-avatar.tsx`.
 - `app/evaluations/new/page.tsx` orders available models with the user's saved preferred model first.
 - `requireUser()` is for server components/pages.
@@ -183,6 +184,7 @@ Prisma commands require both `DATABASE_URL` and `DIRECT_URL` to be set in the sh
 - Ownership checks are required before reading/modifying user-owned evaluations.
 - Prompt inputs are checked for likely secrets before AI evaluation.
 - Service role keys must not be used in client components.
+- The Supabase service role key is only for server-side admin actions such as account deletion.
 - AI calls happen server-side only.
 
 ## UI Conventions
@@ -212,4 +214,5 @@ If `next build` fails in a sandbox with a Turbopack port-binding permission erro
 - Set `STRIPE_PRO_PRICE_ID` and `STRIPE_PREMIUM_PRICE_ID`.
 - Configure Stripe webhook endpoint and `STRIPE_WEBHOOK_SECRET`.
 - Apply the current Prisma schema to the deployed database.
+- Ensure `SUPABASE_SERVICE_ROLE_KEY` is configured before enabling account deletion in production.
 - Configure Sentry DSN and release tracking if production monitoring is required.

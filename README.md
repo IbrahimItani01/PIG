@@ -9,7 +9,7 @@ Tagline: “Grade your prompts before AI grades your results.”
 - Dark-mode-first SaaS UI with landing, auth, dashboard, history, result, settings, and admin/dev pages.
 - Supabase Auth with Google OAuth and passwordless email sign-in.
 - Signup requires users to choose Free, Pro, or Premium before authenticating; the selected plan is activated after the auth callback.
-- Account settings for profile updates, default model preference, auth status, and sign-out.
+- Account settings for profile updates, default model preference, auth status, sign-out, and account deletion.
 - Prisma/Postgres schema for users, evaluations, versions, test runs, templates, usage events, and Stripe-ready subscriptions.
 - Server-side AI provider abstraction for default, OpenAI, Anthropic, and Gemini routes.
 - Zod validation for request inputs and AI structured outputs.
@@ -115,6 +115,7 @@ npm run build
 - Auth UI supports Google OAuth and passwordless email links only. Email/password login is deprecated.
 - Authenticated users are redirected away from login/signup pages.
 - Account updates are validated server-side and preferred models must be allowed by the user's plan.
+- Account deletion requires email confirmation, cancels active Stripe subscriptions, deletes app data, and removes the Supabase Auth user with the server-only service role key.
 - API routes validate inputs with Zod and enforce Prisma ownership checks.
 - RLS SQL policies are provided for Supabase table access.
 - Service role keys are never used in client components.
