@@ -42,7 +42,7 @@ Copy `.env.example` to `.env.local` and fill in:
 
 - Supabase: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 - Database: `DATABASE_URL`, `DIRECT_URL`
-- AI: `AI_GATEWAY_API_KEY` or provider keys plus model env vars
+- AI: `AI_GATEWAY_API_KEY` plus optional model env vars
 - Redis: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
 - Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_PRO_PRICE_ID`
 - Sentry: `SENTRY_DSN`

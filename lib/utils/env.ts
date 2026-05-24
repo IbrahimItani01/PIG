@@ -8,10 +8,5 @@ export function getAppUrl() {
 }
 
 export function hasAiCredentials() {
-  return Boolean(
-    getOptionalEnv("AI_GATEWAY_API_KEY") ??
-      getOptionalEnv("OPENAI_API_KEY") ??
-      getOptionalEnv("ANTHROPIC_API_KEY") ??
-      getOptionalEnv("GOOGLE_GENERATIVE_AI_API_KEY"),
-  );
+  return Boolean(getOptionalEnv("AI_GATEWAY_API_KEY"));
 }
