@@ -1,6 +1,10 @@
 export const brand = {
   shortName: "PIG",
   fullName: "Prompt Intelligent Grader",
+  logo: {
+    src: "/brand/pig-brand-logo.png",
+    alt: "Prompt Intelligent Grader logo",
+  },
   tagline: "Grade your prompts before AI grades your results.",
   description:
     "An AI-powered prompt evaluator, scorer, and improver for teams that want more reliable AI outputs.",

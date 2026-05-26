@@ -7,13 +7,16 @@ import { siteContent } from "@/config/site-content";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { LandingMotion } from "@/components/marketing/landing-motion";
 
 export default function MarketingPage() {
   return (
     <main className="grid-bg min-h-screen">
       <header className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
-        <Link href="/" className="text-lg font-bold">{brand.shortName}</Link>
+        <Link href="/" className="rounded-md">
+          <BrandLogo markClassName="h-10 w-10" priority />
+        </Link>
         <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
           {marketingNavigation.map((item) => (
             <Link key={item.href} href={item.href} className="hover:text-foreground">
@@ -134,7 +137,7 @@ export default function MarketingPage() {
       </section>
 
       <footer className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
-        <span>{brand.fullName}</span>
+        <BrandLogo markClassName="h-8 w-8" textClassName="text-foreground" />
         <div className="flex gap-4">
           {siteContent.footerLinks.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}
         </div>

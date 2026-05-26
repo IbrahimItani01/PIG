@@ -42,8 +42,9 @@ Do not initialize database, Redis, Stripe, or other service clients eagerly at m
 
 - `app/`: App Router pages and route handlers.
 - `app/(marketing)/page.tsx`: public landing/pricing page.
-- `app/dashboard/page.tsx`: authenticated dashboard.
-- `app/billing/page.tsx`: authenticated billing dashboard.
+- `app/(workspace)/layout.tsx`: authenticated dashboard layout. It performs the first workspace fetch, hydrates Redux, and keeps `AppShell` persistent across dashboard navigation.
+- `app/(workspace)/dashboard/page.tsx`: authenticated dashboard.
+- `app/(workspace)/billing/page.tsx`: authenticated billing dashboard.
 - `app/api/evaluations/route.ts`: evaluation API.
 - `app/api/evaluations/[id]/test/route.ts`: prompt test run API.
 - `app/api/stripe/checkout/route.ts`: Stripe subscription checkout.
@@ -53,14 +54,17 @@ Do not initialize database, Redis, Stripe, or other service clients eagerly at m
 - `app/auth/confirm/route.ts`: Supabase email token-hash confirmation endpoint for SSR email templates.
 - `app/api/account/route.ts`: authenticated profile updates, preferred-model updates, and account deletion.
 - `components/`: feature and UI components.
-- `components/providers/redux-provider.tsx`: root Redux provider and global loading overlay wiring.
+- `components/providers/redux-provider.tsx`: workspace Redux provider and global loading overlay wiring.
 - `components/layout/realtime-refresh.tsx`: Supabase Realtime listener that refreshes authenticated dashboard data when user-owned database rows change.
 - `config/`: product, plan, model, rubric, navigation, and content config.
+- `public/brand/pig-brand-logo.png`: canonical uploaded brand logo used in UI placeholders. Root app icon files in `app/favicon.ico`, `app/icon.png`, and `app/apple-icon.png` are generated from this source.
 - `lib/ai/`: model registry, prompt evaluation, prompt testing, schemas, scoring.
 - `lib/auth/`: Supabase session helpers and ownership checks.
 - `lib/billing/`: plan-to-Stripe mapping and monthly usage enforcement.
 - `lib/rate-limit/`: daily abuse throttle via Upstash Redis or memory fallback.
+- `lib/store/`: Redux Toolkit store, UI state, and the authenticated workspace snapshot.
 - `lib/stripe/`: lazy Stripe SDK getter.
+- `lib/workspace/snapshot.ts`: server-side workspace snapshot builder for authenticated dashboard state hydration.
 - `prisma/`: Prisma schema and seed script.
 
 ## Plans and Billing
@@ -179,10 +183,11 @@ Prisma commands require both `DATABASE_URL` and `DIRECT_URL` to be set in the sh
 - Authenticated users are redirected away from `/login` and `/signup` to `/dashboard`.
 - Account management lives on `/settings`: users can update display name, choose an allowed default model, inspect auth/session details, sign out, and delete their account.
 - Account deletion requires the user to type their email address, cancels any active Stripe subscription, deletes app data through Prisma cascade relations, and removes the Supabase Auth user through the service-role admin API.
-- Authenticated dashboard pages use Redux for global loading state and subscribe to Supabase Realtime for user-owned `users`, `prompt_evaluations`, `usage_events`, and `subscriptions` changes. Realtime events automatically trigger `router.refresh()` so users do not need to manually reload.
+- Authenticated dashboard pages live under `app/(workspace)` and share one persistent layout. `lib/workspace/snapshot.ts` fetches the authenticated user, recent evaluations, billing usage, allowed models, dashboard stats, and admin usage events once for that layout, then hydrates Redux. Child dashboard pages should read from `state.workspace.snapshot` instead of repeating `requireUser()` or Prisma reads.
+- Authenticated dashboard pages use Redux for workspace data, global loading state, and Supabase Realtime sync metadata. Realtime events automatically trigger `router.refresh()` so the workspace snapshot is refreshed without manual reloads.
 - Supabase Realtime must be enabled for the relevant public tables in production for automatic dashboard updates to work.
 - User avatars use Google/Supabase `avatarUrl` when present and fall back to initials via `components/account/user-avatar.tsx`.
-- `app/evaluations/new/page.tsx` orders available models with the user's saved preferred model first.
+- `app/(workspace)/evaluations/new/page.tsx` reads ordered available models from the hydrated Redux workspace snapshot. The server snapshot builder orders the user's saved preferred model first.
 - `requireUser()` is for server components/pages.
 - `requireApiUser()` is for route handlers.
 - API inputs are validated with Zod.
@@ -195,8 +200,9 @@ Prisma commands require both `DATABASE_URL` and `DIRECT_URL` to be set in the sh
 ## UI Conventions
 
 - Prefer existing UI primitives in `components/ui`.
-- Use `AppShell` for authenticated app pages.
-- Pass the authenticated user into `AppShell` so the sidebar account summary and avatar render consistently.
+- Use `components/brand/brand-logo.tsx` for PIG brand marks in website, auth, and dashboard chrome instead of recreating logo/image markup.
+- Use the shared `app/(workspace)/layout.tsx` `AppShell` for authenticated app pages. Do not wrap each dashboard page in its own `AppShell`.
+- Dashboard pages should be client components that read user/account/workspace data from Redux unless they have a specific reason to fetch server-side.
 - Keep product UI dense, practical, and dashboard-oriented.
 - Use shared config (`config/plans.ts`, `config/site-content.ts`, `config/models.ts`) instead of duplicating product copy or limits in page code.
 - Billing and marketing pricing cards should render plan name, price, description, CTA, and features from plan config.

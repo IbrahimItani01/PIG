@@ -3,9 +3,9 @@
 import Link from "next/link";
 import type { MouseEvent } from "react";
 import { usePathname } from "next/navigation";
-import { brand } from "@/config/brand";
 import { adminNavigation, appNavigation } from "@/config/navigation";
 import { UserAvatar } from "@/components/account/user-avatar";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { Badge } from "@/components/ui/badge";
 import type { UserRole } from "@prisma/client";
 import { RealtimeRefresh } from "@/components/layout/realtime-refresh";
@@ -40,11 +40,7 @@ export function AppShell({
       {user ? <RealtimeRefresh userId={user.id} /> : null}
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r bg-card/80 p-5 backdrop-blur lg:block">
         <Link href="/dashboard" className="flex items-center gap-3" onClick={(event) => startNavigation(event, "/dashboard")}>
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary font-bold">{brand.shortName[0]}</div>
-          <div>
-            <div className="font-semibold">{brand.shortName}</div>
-            <div className="text-xs text-muted-foreground">Prompt grading</div>
-          </div>
+          <BrandLogo subtitle="Prompt grading" priority />
         </Link>
         <nav className="mt-8 space-y-1">
           {navigation.map((item) => (
