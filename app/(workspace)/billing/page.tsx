@@ -21,7 +21,7 @@ export default function BillingPage() {
   const { usage, user } = workspace;
   const plan = plans[user.plan];
   const subscription = usage.subscription;
-  const canOpenPortal = Boolean(subscription?.stripeCustomerId);
+  const canOpenPortal = usage.canOpenPortal;
 
   return (
     <div className="space-y-6">
@@ -47,8 +47,6 @@ export default function BillingPage() {
             <Detail label="Status" value={subscription?.status.toLowerCase().replaceAll("_", " ") ?? "free"} />
             <Detail label="Billing period" value={`${formatDate(usage.period.start)} - ${formatDate(usage.period.end)}`} />
             <Detail label="Renews" value={subscription?.cancelAtPeriodEnd ? "Cancels at period end" : formatDate(usage.period.end)} />
-            <Detail label="Stripe customer" value={subscription?.stripeCustomerId ?? "Not created"} mono />
-            <Detail label="Stripe price" value={subscription?.priceId ?? "None"} mono />
           </CardContent>
         </Card>
 
@@ -144,11 +142,11 @@ export default function BillingPage() {
   );
 }
 
-function Detail({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div className="text-xs uppercase text-muted-foreground">{label}</div>
-      <div className={mono ? "break-all font-mono text-xs" : "font-medium"}>{value}</div>
+      <div className="font-medium">{value}</div>
     </div>
   );
 }

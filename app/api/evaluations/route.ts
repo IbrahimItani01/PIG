@@ -12,19 +12,20 @@ import { checkEvaluationRateLimit } from "@/lib/rate-limit";
 import { handleRouteError, jsonError } from "@/lib/utils/http";
 import { isModelAllowedForPlan } from "@/lib/ai/model-registry";
 import { checkMonthlyUsageLimit, recordLimitEvent } from "@/lib/billing/usage";
+import { workspaceConfig } from "@/config/workspace";
+import { serializeEvaluationDetail } from "@/lib/workspace/serializers";
+import { getEvaluationHistoryPage } from "@/lib/workspace/evaluation-history";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const { user, response } = await requireApiUser();
     if (!user) return response;
-    const evaluations = await getPrisma().promptEvaluation.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-      include: { versions: true, testRuns: true },
-      take: 100,
-    });
 
-    return NextResponse.json({ evaluations });
+    const page = getPositiveInteger(request.nextUrl.searchParams.get("page"), 1);
+    const requestedPageSize = getPositiveInteger(request.nextUrl.searchParams.get("pageSize"), workspaceConfig.evaluationHistoryPageSize);
+    const history = await getEvaluationHistoryPage({ userId: user.id, page, pageSize: requestedPageSize });
+
+    return NextResponse.json(history);
   } catch (error) {
     return handleRouteError(error);
   }
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
           ],
         },
       },
-      include: { versions: true, testRuns: true },
+      include: { versions: { orderBy: { createdAt: "asc" } } },
     });
 
     await getPrisma().usageEvent.create({
@@ -127,8 +128,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ evaluation }, { status: 201 });
+    return NextResponse.json({ evaluation: serializeEvaluationDetail(evaluation) }, { status: 201 });
   } catch (error) {
     return handleRouteError(error);
   }
+}
+
+function getPositiveInteger(value: string | null, fallback: number) {
+  if (!value) return fallback;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }

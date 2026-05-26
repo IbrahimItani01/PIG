@@ -16,7 +16,7 @@ export function ReduxProvider({
   initialWorkspaceSnapshot?: WorkspaceSnapshot;
 }) {
   const [store] = useState<AppStore>(() =>
-    makeStore(initialWorkspaceSnapshot ? { workspace: { snapshot: initialWorkspaceSnapshot } } : undefined),
+    makeStore(initialWorkspaceSnapshot ? { workspace: { snapshot: initialWorkspaceSnapshot, evaluationDetails: {} } } : undefined),
   );
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { rubricConfig, type RubricKey, scoreInterpretations } from "@/config/rubric";
 import { CopyButton } from "@/components/evaluation/copy-button";
@@ -10,8 +10,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspaceSnapshot } from "@/components/workspace/use-workspace";
-import { useAppDispatch } from "@/lib/store/hooks";
-import { upsertWorkspaceEvaluation, type WorkspaceEvaluation } from "@/lib/store/workspace-slice";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import {
+  cacheWorkspaceEvaluationDetail,
+  upsertWorkspaceEvaluationSummary,
+  type WorkspaceEvaluationDetail,
+} from "@/lib/store/workspace-slice";
 
 const scoreFields: Array<[RubricKey, string]> = [
   ["clarity", "clarityScore"],
@@ -26,13 +30,13 @@ const scoreFields: Array<[RubricKey, string]> = [
 
 export default function EvaluationResultPage() {
   const params = useParams<{ id: string }>();
+  const id = params.id;
   const dispatch = useAppDispatch();
   const workspace = useWorkspaceSnapshot();
-  const [remoteEvaluation, setRemoteEvaluation] = useState<WorkspaceEvaluation | null>(null);
+  const cachedEvaluation = useAppSelector((state) => state.workspace.evaluationDetails[id] ?? null);
+  const [remoteEvaluation, setRemoteEvaluation] = useState<WorkspaceEvaluationDetail | null>(null);
   const [missing, setMissing] = useState(false);
-  const id = params.id;
 
-  const cachedEvaluation = useMemo(() => workspace?.evaluations.find((item) => item.id === id) ?? null, [id, workspace?.evaluations]);
   const evaluation = cachedEvaluation ?? remoteEvaluation;
 
   useEffect(() => {
@@ -48,7 +52,8 @@ export default function EvaluationResultPage() {
         if (!active) return;
         const normalized = normalizeEvaluation(payload.evaluation);
         setRemoteEvaluation(normalized);
-        dispatch(upsertWorkspaceEvaluation(normalized));
+        dispatch(cacheWorkspaceEvaluationDetail(normalized));
+        dispatch(upsertWorkspaceEvaluationSummary(toEvaluationSummary(normalized)));
       })
       .catch(() => {
         if (active) setMissing(true);
@@ -177,7 +182,7 @@ export default function EvaluationResultPage() {
   );
 }
 
-function normalizeEvaluation(value: WorkspaceEvaluation): WorkspaceEvaluation {
+function normalizeEvaluation(value: WorkspaceEvaluationDetail): WorkspaceEvaluationDetail {
   return {
     ...value,
     createdAt: new Date(value.createdAt).toISOString(),
@@ -188,5 +193,18 @@ function normalizeEvaluation(value: WorkspaceEvaluation): WorkspaceEvaluation {
       ...version,
       createdAt: new Date(version.createdAt).toISOString(),
     })),
+  };
+}
+
+function toEvaluationSummary(value: WorkspaceEvaluationDetail) {
+  return {
+    id: value.id,
+    title: value.title,
+    useCase: value.useCase,
+    modelProvider: value.modelProvider,
+    modelId: value.modelId,
+    overallScore: value.overallScore,
+    createdAt: value.createdAt,
+    updatedAt: value.updatedAt,
   };
 }

@@ -15,7 +15,7 @@ export default function DashboardPage() {
   const workspace = useWorkspaceSnapshot();
   if (!workspace) return null;
 
-  const evaluations = workspace.evaluations.slice(0, 8);
+  const evaluations = workspace.recentEvaluations;
   const stats = workspace.dashboard;
   const { user } = workspace;
 

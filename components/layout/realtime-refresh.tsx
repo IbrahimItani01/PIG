@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/auth/supabase-client";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { recordRealtimeEvent, startAppLoading, stopAppLoading } from "@/lib/store/ui-slice";
+import { workspaceConfig } from "@/config/workspace";
 
 const realtimeTables = ["users", "prompt_evaluations", "usage_events", "subscriptions"] as const;
 
@@ -36,7 +37,7 @@ export function RealtimeRefresh({ userId }: { userId: string }) {
           refreshTimer.current = setTimeout(() => {
             router.refresh();
             stopTimer.current = setTimeout(() => dispatch(stopAppLoading()), 900);
-          }, 350);
+          }, workspaceConfig.realtimeRefreshDebounceMs);
         },
       );
     }

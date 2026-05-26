@@ -1,43 +1,16 @@
-import { type PromptEvaluation, type PromptVersion, type Subscription } from "@prisma/client";
 import { getAllowedModels } from "@/lib/ai/model-registry";
 import type { AuthenticatedUser } from "@/lib/auth/session";
 import { requireUser } from "@/lib/auth/session";
 import { getBillingUsageSummary, type BillingUsageSummary } from "@/lib/billing/usage";
 import { getPrisma } from "@/lib/db/prisma";
-import type { WorkspaceEvaluation, WorkspaceSnapshot, WorkspaceSubscription, WorkspaceUsageSummary } from "@/lib/store/workspace-slice";
-
-type EvaluationWithVersions = PromptEvaluation & {
-  versions: PromptVersion[];
-};
-
-function stringArray(value: unknown) {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
-}
-
-function serializeSubscription(subscription: Subscription | null): WorkspaceSubscription | null {
-  if (!subscription) return null;
-
-  return {
-    id: subscription.id,
-    userId: subscription.userId,
-    plan: subscription.plan,
-    stripeCustomerId: subscription.stripeCustomerId,
-    stripeSubscriptionId: subscription.stripeSubscriptionId,
-    status: subscription.status,
-    priceId: subscription.priceId,
-    currentPeriodStart: subscription.currentPeriodStart?.toISOString() ?? null,
-    currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
-    cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-    cancelAt: subscription.cancelAt?.toISOString() ?? null,
-    canceledAt: subscription.canceledAt?.toISOString() ?? null,
-    createdAt: subscription.createdAt.toISOString(),
-    updatedAt: subscription.updatedAt.toISOString(),
-  };
-}
+import { workspaceConfig } from "@/config/workspace";
+import type { WorkspaceSnapshot, WorkspaceUsageSummary } from "@/lib/store/workspace-slice";
+import { evaluationSummarySelect, serializeEvaluationSummary, serializeSubscription } from "@/lib/workspace/serializers";
 
 function serializeUsage(usage: BillingUsageSummary): WorkspaceUsageSummary {
   return {
     plan: usage.plan,
+    canOpenPortal: Boolean(usage.subscription?.stripeCustomerId),
     period: {
       start: usage.period.start.toISOString(),
       end: usage.period.end.toISOString(),
@@ -47,45 +20,6 @@ function serializeUsage(usage: BillingUsageSummary): WorkspaceUsageSummary {
     promptTests: usage.promptTests,
     qualityModelRuns: usage.qualityModelRuns,
     subscription: serializeSubscription(usage.subscription),
-  };
-}
-
-function serializeEvaluation(evaluation: EvaluationWithVersions): WorkspaceEvaluation {
-  return {
-    id: evaluation.id,
-    userId: evaluation.userId,
-    title: evaluation.title,
-    originalPrompt: evaluation.originalPrompt,
-    useCase: evaluation.useCase,
-    targetAudience: evaluation.targetAudience,
-    desiredOutput: evaluation.desiredOutput,
-    tone: evaluation.tone,
-    modelProvider: evaluation.modelProvider,
-    modelId: evaluation.modelId,
-    overallScore: evaluation.overallScore,
-    clarityScore: evaluation.clarityScore,
-    contextScore: evaluation.contextScore,
-    specificityScore: evaluation.specificityScore,
-    constraintsScore: evaluation.constraintsScore,
-    outputFormatScore: evaluation.outputFormatScore,
-    examplesScore: evaluation.examplesScore,
-    safetyScore: evaluation.safetyScore,
-    testabilityScore: evaluation.testabilityScore,
-    summary: evaluation.summary,
-    weaknesses: stringArray(evaluation.weaknesses),
-    recommendations: stringArray(evaluation.recommendations),
-    improvedPrompt: evaluation.improvedPrompt,
-    createdAt: evaluation.createdAt.toISOString(),
-    updatedAt: evaluation.updatedAt.toISOString(),
-    versions: evaluation.versions.map((version) => ({
-      id: version.id,
-      evaluationId: version.evaluationId,
-      label: version.label,
-      promptText: version.promptText,
-      versionType: version.versionType,
-      notes: version.notes,
-      createdAt: version.createdAt.toISOString(),
-    })),
   };
 }
 
@@ -112,8 +46,8 @@ export async function getWorkspaceSnapshot(): Promise<WorkspaceSnapshot> {
     prisma.promptEvaluation.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
-      include: { versions: { orderBy: { createdAt: "asc" } } },
-      take: 100,
+      select: evaluationSummarySelect,
+      take: workspaceConfig.recentEvaluationsLimit,
     }),
     prisma.promptEvaluation.aggregate({
       where: { userId: user.id },
@@ -136,7 +70,7 @@ export async function getWorkspaceSnapshot(): Promise<WorkspaceSnapshot> {
 
   return {
     user: serializeUser(user),
-    evaluations: evaluations.map(serializeEvaluation),
+    recentEvaluations: evaluations.map(serializeEvaluationSummary),
     usage: serializeUsage(usage),
     dashboard: {
       totalEvaluations: aggregate._count,

@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { Plan, PromptUseCase, PromptVersionType, SubscriptionStatus, UsageEventType, UserRole } from "@prisma/client";
+import { workspaceConfig } from "@/config/workspace";
 import type { ResolvedModel } from "@/lib/ai/model-registry";
 
 export type WorkspaceUser = {
@@ -25,18 +26,23 @@ export type WorkspacePromptVersion = {
   createdAt: string;
 };
 
-export type WorkspaceEvaluation = {
+export type WorkspaceEvaluationSummary = {
   id: string;
-  userId: string;
   title: string;
-  originalPrompt: string;
   useCase: PromptUseCase;
-  targetAudience: string;
-  desiredOutput: string;
-  tone: string;
   modelProvider: string;
   modelId: string;
   overallScore: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type WorkspaceEvaluationDetail = WorkspaceEvaluationSummary & {
+  userId: string;
+  originalPrompt: string;
+  targetAudience: string;
+  desiredOutput: string;
+  tone: string;
   clarityScore: number;
   contextScore: number;
   specificityScore: number;
@@ -49,8 +55,6 @@ export type WorkspaceEvaluation = {
   weaknesses: string[];
   recommendations: string[];
   improvedPrompt: string;
-  createdAt: string;
-  updatedAt: string;
   versions: WorkspacePromptVersion[];
 };
 
@@ -65,10 +69,7 @@ export type WorkspaceSubscription = {
   id: string;
   userId: string;
   plan: Plan;
-  stripeCustomerId: string | null;
-  stripeSubscriptionId: string | null;
   status: SubscriptionStatus;
-  priceId: string | null;
   currentPeriodStart: string | null;
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
@@ -80,6 +81,7 @@ export type WorkspaceSubscription = {
 
 export type WorkspaceUsageSummary = {
   plan: Plan;
+  canOpenPortal: boolean;
   period: {
     start: string;
     end: string;
@@ -108,7 +110,7 @@ export type WorkspaceAdminUsageEvent = {
 
 export type WorkspaceSnapshot = {
   user: WorkspaceUser;
-  evaluations: WorkspaceEvaluation[];
+  recentEvaluations: WorkspaceEvaluationSummary[];
   usage: WorkspaceUsageSummary;
   dashboard: WorkspaceDashboardStats;
   models: ResolvedModel[];
@@ -118,10 +120,12 @@ export type WorkspaceSnapshot = {
 
 export type WorkspaceState = {
   snapshot: WorkspaceSnapshot | null;
+  evaluationDetails: Record<string, WorkspaceEvaluationDetail>;
 };
 
 const initialState: WorkspaceState = {
   snapshot: null,
+  evaluationDetails: {},
 };
 
 export const workspaceSlice = createSlice({
@@ -131,18 +135,21 @@ export const workspaceSlice = createSlice({
     hydrateWorkspace(state, action: PayloadAction<WorkspaceSnapshot>) {
       state.snapshot = action.payload;
     },
-    upsertWorkspaceEvaluation(state, action: PayloadAction<WorkspaceEvaluation>) {
+    upsertWorkspaceEvaluationSummary(state, action: PayloadAction<WorkspaceEvaluationSummary>) {
       if (!state.snapshot) return;
 
-      const existingIndex = state.snapshot.evaluations.findIndex((evaluation) => evaluation.id === action.payload.id);
+      const existingIndex = state.snapshot.recentEvaluations.findIndex((evaluation) => evaluation.id === action.payload.id);
       if (existingIndex >= 0) {
-        state.snapshot.evaluations[existingIndex] = action.payload;
+        state.snapshot.recentEvaluations[existingIndex] = action.payload;
       } else {
-        state.snapshot.evaluations.unshift(action.payload);
-        state.snapshot.evaluations = state.snapshot.evaluations.slice(0, 100);
+        state.snapshot.recentEvaluations.unshift(action.payload);
+        state.snapshot.recentEvaluations = state.snapshot.recentEvaluations.slice(0, workspaceConfig.recentEvaluationsLimit);
       }
+    },
+    cacheWorkspaceEvaluationDetail(state, action: PayloadAction<WorkspaceEvaluationDetail>) {
+      state.evaluationDetails[action.payload.id] = action.payload;
     },
   },
 });
 
-export const { hydrateWorkspace, upsertWorkspaceEvaluation } = workspaceSlice.actions;
+export const { cacheWorkspaceEvaluationDetail, hydrateWorkspace, upsertWorkspaceEvaluationSummary } = workspaceSlice.actions;

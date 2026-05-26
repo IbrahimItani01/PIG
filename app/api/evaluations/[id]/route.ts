@@ -4,6 +4,7 @@ import { requireApiUser } from "@/lib/auth/api-session";
 import { assertOwnsEvaluation } from "@/lib/auth/authorization";
 import { getPrisma } from "@/lib/db/prisma";
 import { handleRouteError, jsonError } from "@/lib/utils/http";
+import { serializeEvaluationDetail } from "@/lib/workspace/serializers";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -12,7 +13,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     const { id } = await params;
     const evaluation = await assertOwnsEvaluation(user.id, id);
     if (!evaluation) return jsonError(messages.errors.forbidden, 404);
-    return NextResponse.json({ evaluation });
+    return NextResponse.json({ evaluation: serializeEvaluationDetail(evaluation) });
   } catch (error) {
     return handleRouteError(error);
   }

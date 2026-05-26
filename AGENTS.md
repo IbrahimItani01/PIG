@@ -57,6 +57,7 @@ Do not initialize database, Redis, Stripe, or other service clients eagerly at m
 - `components/providers/redux-provider.tsx`: workspace Redux provider and global loading overlay wiring.
 - `components/layout/realtime-refresh.tsx`: Supabase Realtime listener that refreshes authenticated dashboard data when user-owned database rows change.
 - `config/`: product, plan, model, rubric, navigation, and content config.
+- `config/workspace.ts`: workspace snapshot and history pagination limits.
 - `public/brand/pig-brand-logo.png`: canonical uploaded brand logo used in UI placeholders. Root app icon files in `app/favicon.ico`, `app/icon.png`, and `app/apple-icon.png` are generated from this source.
 - `lib/ai/`: model registry, prompt evaluation, prompt testing, schemas, scoring.
 - `lib/auth/`: Supabase session helpers and ownership checks.
@@ -183,7 +184,8 @@ Prisma commands require both `DATABASE_URL` and `DIRECT_URL` to be set in the sh
 - Authenticated users are redirected away from `/login` and `/signup` to `/dashboard`.
 - Account management lives on `/settings`: users can update display name, choose an allowed default model, inspect auth/session details, sign out, and delete their account.
 - Account deletion requires the user to type their email address, cancels any active Stripe subscription, deletes app data through Prisma cascade relations, and removes the Supabase Auth user through the service-role admin API.
-- Authenticated dashboard pages live under `app/(workspace)` and share one persistent layout. `lib/workspace/snapshot.ts` fetches the authenticated user, recent evaluations, billing usage, allowed models, dashboard stats, and admin usage events once for that layout, then hydrates Redux. Child dashboard pages should read from `state.workspace.snapshot` instead of repeating `requireUser()` or Prisma reads.
+- Authenticated dashboard pages live under `app/(workspace)` and share one persistent layout. `lib/workspace/snapshot.ts` fetches the authenticated user, bounded lightweight recent evaluation summaries, billing usage, allowed models, dashboard stats, and admin usage events once for that layout, then hydrates Redux. Child dashboard pages should read shell data from `state.workspace.snapshot` instead of repeating `requireUser()` or broad Prisma reads.
+- Keep Redux workspace snapshots bounded and client-safe. Do not put full prompt text, rewrite bodies, Stripe customer/subscription IDs, service credentials, or unpaginated database records into the shared workspace snapshot. Use paginated API reads for evaluation history and on-demand detail fetches for full prompt/evaluation content.
 - Authenticated dashboard pages use Redux for workspace data, global loading state, and Supabase Realtime sync metadata. Realtime events automatically trigger `router.refresh()` so the workspace snapshot is refreshed without manual reloads.
 - Supabase Realtime must be enabled for the relevant public tables in production for automatic dashboard updates to work.
 - User avatars use Google/Supabase `avatarUrl` when present and fall back to initials via `components/account/user-avatar.tsx`.
